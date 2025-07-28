@@ -1,17 +1,13 @@
-from functions.get_files_info import get_files_info
+from functions.get_files_info import get_files_info, get_file_content
 
-test_1 = get_files_info("calculator", ".")
-print("Result for current directory:")
+test_1 = get_file_content("calculator", "main.py")
 print(test_1)
 
-test_2 = get_files_info("calculator", "pkg")
-print("Result for 'pkg' directory:")
+test_2 = get_file_content("calculator", "pkg/calculator.py")
 print(test_2)
 
-test_3 = get_files_info("calculator", "/bin")
-print("Result for '/bin' directory:")
+test_3 = get_file_content("calculator", "/bin/cat")
 print(test_3)
 
-test_4 = get_files_info("calculator", "../")
-print("Result for '../' directory:")
+test_4 = get_file_content("calculator", "pkg/does_not_exist.py")
 print(test_4)
