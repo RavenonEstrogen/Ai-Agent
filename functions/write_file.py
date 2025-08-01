@@ -5,13 +5,13 @@ from google.genai import types
 
 schema_write_file = types.FunctionDeclaration(
     name="write_file",
-    description="Writes specified content in files in the specified directory, constrained to the working directory.",
+    description="Writes specified content in files in the specified directory or create a new file to write in, constrained to the working directory.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
         properties={
-            "directory": types.Schema(
+            "file_path": types.Schema(
                 type=types.Type.STRING,
-                description="The directory to write content in files from, relative to the working directory. If not provided, writes content in files in the working directory itself.",
+                description="The path to write content in files from, relative to the working directory. If not provided, writes content in files in the working directory itself.",
             ),
             "content": types.Schema(
                 type=types.Type.STRING,

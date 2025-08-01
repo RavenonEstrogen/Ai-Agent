@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from google.genai import types
 
 from prompts import system_prompt
-from available_functions import available_functions
+from available_functions import available_functions, call_function
 
 def main():
     load_dotenv()
@@ -30,16 +30,56 @@ def main():
     generate_content(client, messages, verbose)
 
 def generate_content(client, messages, verbose):
-    response = client.models.generate_content(
-        model='gemini-2.0-flash-001', contents=messages, config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
-    )
+    for i in range(0,21):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash-001', contents=messages, config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
+            )
 
-    if verbose:
-        print(f'Prompt tokens: {response.usage_metadata.prompt_token_count}')
-        print(f'Response tokens: {response.usage_metadata.candidates_token_count}')
-    if response.function_calls:
-        print(f"Calling function: {response.function_calls[0].name}({response.function_calls[0].args})")
-    print(response.text)
+            for candidate in response.candidates:
+                content = candidate.content
+                messages.append(content)
+
+            if response.text:
+                print(response.text)
+                return response.text
+
+            if verbose:
+                print(f'Prompt tokens: {response.usage_metadata.prompt_token_count}')
+                print(f'Response tokens: {response.usage_metadata.candidates_token_count}')
+
+            if not response.function_calls:
+                return response.text
+    
+            for function_call_part in response.function_calls:
+                function_call_result = call_function(function_call_part, verbose)
+                print("DEBUG function_call_result =", function_call_result)
+                print("DEBUG type(function_call_result) =", type(function_call_result))
+                actual_result = function_call_result.parts[0].function_response.response
+                tool_message = types.Content(
+                    role="tool",
+                    parts=[
+                        types.Part.from_function_response(
+                            name=function_call_part,
+                            response=actual_result,
+                        )
+                    ],
+                )
+                messages.append(tool_message)
+
+                if not function_call_result.parts or not getattr(function_call_result.parts[0], "function_response", None) or not getattr(function_call_result.parts[0].function_response, "response", None):
+                    raise Exception("Fatal: No function response received from call_function.")
+        
+                print(f"-> {function_call_result.parts[0].function_response.response}")
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            return None
+    if response.text:
+        print(response.text)
+        return response.text
+    else:
+        print("Agent reached 20 iterations without success.")
+        return None
 
 if __name__ == "__main__":
     main()
