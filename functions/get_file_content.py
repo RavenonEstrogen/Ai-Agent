@@ -3,8 +3,8 @@ from functions.config import max_character
 from google import genai
 from google.genai import types
 
-schema_get_files_content = types.FunctionDeclaration(
-    name="get_files_content",
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
     description="Get the content of a file in the specified directory and read their content up to a maximum of characters, constrained to the working directory.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
@@ -17,7 +17,7 @@ schema_get_files_content = types.FunctionDeclaration(
     ),
 )
 
-def get_files_content(working_directory, file_path):
+def get_file_content(working_directory, file_path):
     joined_path = os.path.join(working_directory, file_path)
 
     if not os.path.abspath(joined_path).startswith(os.path.abspath(working_directory)):
